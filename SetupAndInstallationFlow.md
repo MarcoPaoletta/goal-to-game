@@ -73,6 +73,19 @@ terminal. Let them run it, and wait for them to say it is done.
 Then call `thrixel_account_status` again. It will work in this same session - that is the point
 of the distinction above.
 
+**This case also covers "but I already signed in".** A key that worked last week can be dead
+today: keys never expire, but signing in again revokes the previous one, so a second login on any
+machine kills the first and the old credential stays on disk looking healthy. A user who signed up
+once and has not touched it since can still land here. Do not argue with them and do not assume
+they are wrong about having signed in - they are usually right, and the key is simply revoked. The
+same command is still the fix: `uvx thrixel-mcp@latest login` checks the stored key against the
+server and re-authenticates on its own when it has been revoked. `--force` is NOT needed for this,
+and asking for it first sends the user down a longer path than they need.
+
+Say plainly that generation is blocked until they do it. It is tempting to keep building the game
+and mention it in passing, and that is how a user ends up several turns deep still not knowing why
+no assets have appeared.
+
 ### Case C: there are no thrixel tools at all
 
 The one-time bootstrap was skipped. **This is the only case that needs a restart, and no

@@ -299,8 +299,11 @@ How to spend it is the rest of this file - short version: fewer, better assets, 
 Read the actual prices with `thrixel_pricing`. The shape of the pricing is what matters here,
 and it is stable even when the numbers are not:
 
-- **Detailer, Sculptor, Texture: a flat price per run.** The big, predictable line item, and
-  the same whatever you feed it.
+- **Detailer, Sculptor, Texture: a flat price per run, plus a reference image when you give
+  them only a prompt.** The flat part buys the GPU run. Handed just text, the service also has
+  to generate the image the run works from, and that is billed on its own - roughly a third
+  again on top. Passing an image, or reusing one with `reference_image_id`, skips it. Budget
+  the prompt-only case or your arithmetic is short on every one of them.
 - **Reduce triangles, rebake: free.** Always use `thrixel_reduce_triangles` to hit a triangle
   budget; never re-run the detailer at a lower target to make something lighter.
 - **Architect: metered on real usage and charged after the run**, so it varies by object
@@ -388,8 +391,8 @@ truly need both, pass `preserve_parts: true` explicitly and inspect the result.
 | Path | Cost | Note |
 |---|---|---|
 | Architect alone | Cheapest by a wide margin | Metered, so it varies with the object |
-| Sculptor | One flat operation | Same price whatever you feed it |
-| Architect -> Detailer | Metered Architect **plus** one flat operation | The most expensive route |
+| Sculptor | One flat operation, plus a reference image if you gave it only text | Cheaper from an image you already have |
+| Architect -> Detailer | Metered Architect **plus** one flat operation | The most expensive route. The detailer inherits the mesh, so no reference image is generated |
 
 So **Architect -> Detailer costs roughly 1.5x a Sculptor**. That ratio is the decision;
 the exact cube figures are not, and change without this file changing.
@@ -465,9 +468,40 @@ their answer.
    Each result tells you where it landed (`Filed under project: ...`). If that line is missing,
    you skipped this step - fix it before generating anything else.
 
-2. **Decide the shared style once.** Write one `style` string and append it to every prompt, so
-   independently generated assets read as one set:
-   `"cute low-poly game asset, soft pastel colors, rounded chunky shapes, flat colors, single object, no base or ground plane"`
+   The project is also what a style guide attaches to (step 2a), and only generations inside
+   it are given that guide - another reason this call comes first.
+
+2. **Decide the shared style once, and put it somewhere the tools can apply for you.**
+   Thirty prompts that each restate the style is thirty chances to state it slightly
+   differently, and the set drifts. There are three places to put it, and they are not
+   interchangeable:
+
+   **a. Rules -> a project style guide.** Things you can state in words: polycount budgets,
+   "flat colours, no gradients", "never add a ground plane", "a door is 2.1m tall", in-world
+   naming. Write it once; it applies to every generation in the project from then on.
+
+   ```sh
+   thrixel_add_project_source(filename="style.md", content="...art direction, budgets, scale...")
+   ```
+
+   **b. Look -> a style reference.** How something should APPEAR: palette, material, finish,
+   how worn it is. A paragraph is bad at this and a finished model is good at it. Build one
+   asset you are happy with, then point the rest at it:
+
+   ```sh
+   hero = thrixel_create_model(prompt="a weathered wooden market stall")
+   thrixel_create_model(prompt="a wooden barrel",
+                        style_reference_submission_id=hero.submission_id)
+   ```
+
+   The reference contributes appearance ONLY - the subject always comes from your prompt.
+   `thrixel_sculpt_model` takes it too. Give that one an `image` as well and it restyles YOUR
+   image into that look, so what comes back is no longer the picture you passed in.
+
+   **c. One-off tweaks -> the prompt.** Anything that applies to this asset and no other.
+
+   Use a and b together. Text carries constraints, a picture carries appearance; asking
+   either to do the other's job is where a set starts drifting.
 
 3. **Generate base meshes** with `thrixel_create_model`, passing `quality` per the plan above.
    Run them in waves that respect the concurrency cap from `thrixel_account_status`.

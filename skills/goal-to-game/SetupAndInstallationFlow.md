@@ -268,6 +268,20 @@ Do not run `unity auth login` unless a command fails with an authentication erro
 
 If the user does not have unity hub or an editor installed, give them concise, and very simple instructions on how to do so. Prefer to do everything for them. Assume they have never used Unity before.
 
+### Godot Installation
+
+Use **Godot 4.7** with the Forward+ renderer.
+
+Install the Godot AI plugin so the agent can operate the live editor through MCP:
+
+1. Copy `addons/godot_ai/` into the project's `addons/` folder.
+2. In Godot, open **Project > Project Settings > Plugins** and enable **Godot AI**.
+3. In the **Godot AI** dock, choose the MCP client and press **Configure**.
+
+The plugin starts the MCP server and connects over WebSocket. `uv` must be installed because the
+plugin uses it for its Python server. Once connected, read `engines/godot.md` in full before
+generating assets or editing the project.
+
 ### ThreeJS Installation
 Install ThreeJS dependencies, follow these steps:
 

@@ -1,10 +1,10 @@
 # Goal to Game
 
-Build beautiful games with high-quality 3D assets using [Thrixel](https://thrixel.com/) and Claude Code.
+Build beautiful games with high-quality 3D assets using [Thrixel](https://thrixel.com/) and [Claude Code](https://claude.com/claude-code).
 
 Claude Code handles the game logic and scene setup. Thrixel generates, organizes, and manages the 3D assets. Thrixel processes 3D creation in parallel so you can build your scene faster.
 
-Goal to Game currently supports **Unity** and **Three.js** and was tested with **Claude Code**. Other coding agents that can read repository instructions and run commands inside a project, such as Codex, are expected to work as well, but the instructions below use Claude Code.
+Goal to Game currently supports **Unity** and **Three.js**. This page covers **Claude Code**, where every step below is tested.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/ThatCharlieK/READMEAssets/main/Thrixel-1prompt-to-game-readme.gif" width="600"/>
@@ -13,6 +13,11 @@ Goal to Game currently supports **Unity** and **Three.js** and was tested with *
 ## Quick start
 
 Steps 1 and 2 are once per machine. After that, a new game is just step 3.
+
+> Using [Codex](https://thrixel.com/docs/goal-to-game#codex) or
+> [Gemini CLI](https://thrixel.com/docs/goal-to-game#gemini-cli) instead? Each one
+> installs Thrixel its own way - the
+> [installation page](https://thrixel.com/docs/goal-to-game) has the steps for both.
 
 ### 1. Install Claude Code and uv
 
@@ -43,7 +48,93 @@ of `command not found`.
 
 </details>
 
-### 2. Connect Thrixel
+### 2. Connect Thrixel with [Claude Code Plugins](https://code.claude.com/docs/en/plugins)
+
+Same on every platform:
+
+```bash
+# 1. Sign up and log in. Opens a page with a code, click Approve. The only manual step here.
+uvx thrixel-mcp@latest login
+
+# 2. One plugin carries both the skill and the Thrixel connector, for every project.
+claude plugin marketplace add thrixel/goal-to-game
+claude plugin install thrixel@thrixel
+```
+
+Confirm both pieces landed:
+
+```bash
+claude plugin list     # thrixel@thrixel -> enabled
+claude mcp list        # plugin:thrixel:thrixel -> Connected
+```
+
+**Both lines look right? You are done. Go to step 3.**
+
+**Turn on updates (once).** Updates are off by default. In Claude Code:
+
+1. Type `/plugin`
+2. **Marketplaces** > **thrixel**
+3. **Enable auto-update**
+
+(Or update manually anytime: `/plugin update thrixel@thrixel`. Skipped this? No problem, the
+agent tells you when a newer version is out.)
+
+<details>
+<summary><b>Installed manually before? Remove the old copies</b></summary>
+
+The plugin includes both pieces, so your old install is now a duplicate. Remove it once.
+
+<details open>
+<summary><b>macOS, Linux, WSL</b></summary>
+
+```bash
+claude mcp remove thrixel
+rm -rf ~/.claude/skills/goal-to-game ~/.claude/skills/thrixel
+```
+
+</details>
+
+<details>
+<summary><b>Windows PowerShell</b></summary>
+
+```powershell
+claude mcp remove thrixel
+Remove-Item -Recurse -Force "$HOME\.claude\skills\goal-to-game","$HOME\.claude\skills\thrixel"
+```
+
+</details>
+
+</details>
+
+### 3. Ask for a game
+
+```bash
+# Run this wherever you keep projects. Claude makes the project folder itself.
+claude --permission-mode auto
+```
+
+**Into Claude Code** (not the terminal), start the line with **`/thrixel:goal-to-game`**, then
+describe the game and name the engine (three.js or Unity):
+
+```text
+/thrixel:goal-to-game build a submarine exploration game in three.js set in a bright, vibrant tropical sea with coral and fish
+```
+
+> [!TIP]
+> Type `/thr` and Claude completes **`/thrixel:goal-to-game`** for you, so you never type it in
+> full. If the completion does not appear, the skill is not installed - go back to step 2.
+
+> We recommend setting /model to Opus 5 or a more capable model, with effort set to high or above.
+
+Claude checks your Thrixel account and starts building. Keep talking to it in plain English to
+change things.
+
+<details>
+<summary><b>No plugin? Install the <a href="https://code.claude.com/docs/en/skills">skill</a> and the <a href="https://modelcontextprotocol.io">MCP connector</a> separately</b></summary>
+
+Replaces steps 2 and 3 above. Same start command either way: `/thrixel:goal-to-game`.
+
+**2. Connect Thrixel**
 
 <details open>
 <summary><b>macOS, Linux, WSL</b></summary>
@@ -56,19 +147,10 @@ uvx thrixel-mcp@latest login
 claude mcp add --scope user thrixel -- uvx thrixel-mcp@latest
 
 # 3. Install the skill. Clone, not download, so it can update itself later.
-git clone https://github.com/thrixel/goal-to-game ~/.claude/skills/goal-to-game
+git clone https://github.com/thrixel/goal-to-game ~/.claude/skills/thrixel
 ```
 
 </details>
-
-Confirm both landed. Same two commands on every platform:
-
-```bash
-claude mcp list        # thrixel -> Connected
-ls ~/.claude/skills/   # goal-to-game listed
-```
-
-If either is missing, Claude will build your game without Thrixel and never mention it.
 
 <details>
 <summary><b>Windows PowerShell</b></summary>
@@ -81,28 +163,29 @@ uvx thrixel-mcp@latest login
 
 claude mcp add --scope user thrixel -- uvx thrixel-mcp@latest
 
-git clone https://github.com/thrixel/goal-to-game "$HOME\.claude\skills\goal-to-game"
+git clone https://github.com/thrixel/goal-to-game "$HOME\.claude\skills\thrixel"
 ```
 
 </details>
 
-### 3. Ask for a game
+Confirm both landed:
 
 ```bash
-# Run this wherever you keep projects. Claude makes the project folder itself.
-claude --permission-mode auto
+claude mcp list        # thrixel -> Connected
+ls ~/.claude/skills/   # thrixel listed
 ```
 
-Then type this **into Claude Code** (not the terminal) and specify the engine (three.js or Unity):
+If either is missing, Claude will build the game without Thrixel and never mention it.
+
+**3. Ask for a game**
+
+Identical to step 3 above, same command and all:
 
 ```text
-/goal build a submarine exploration game in three.js set in a bright, vibrant tropical sea with coral and fish
+/thrixel:goal-to-game build a submarine exploration game in three.js set in a bright, vibrant tropical sea with coral and fish
 ```
 
-> We recommend setting /model to Opus 5 or a more capable model, with effort set to high or above.
-
-Claude checks your Thrixel account and starts building. Keep talking to it in plain English to
-change things.
+</details>
 
 <details>
 <summary>Something went wrong</summary>

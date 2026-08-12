@@ -12,23 +12,44 @@ no longer supports.
 
 Do this at the START of every session, before you read further. It is one command.
 
-**1. Confirm the directory this file sits in is its own clone, not a folder inside the user's
-repo.** Skills are often installed under a project's `.claude/skills/`, and that project is
-usually a git repo of its own. Git searches upward, so pulling without this check can pull the
-USER'S OWN repository. Never skip it.
+**1. Is this a plugin install?** If any segment of this file's path is `plugins` - for example
+`.claude/plugins/cache/...` or `.codex/plugins/cache/...` - stop here and do not run git at all.
+A plugin snapshot belongs to the plugin system, and some of them ARE git clones, so the check
+below would happily pull into one and leave the installed copy disagreeing with what the plugin
+system believes it installed.
+
+For a plugin install, check staleness without touching git. If one segment of the path is a
+12-character hex string, that is the commit this copy was built from; compare it against the
+tip of `main`:
 
 ```sh
-git -C <the directory this file is in> rev-parse --show-toplevel
+curl -s --max-time 5 https://api.github.com/repos/thrixel/goal-to-game/commits/main
 ```
 
-- Output is that same directory -> it is its own clone, safe, go to step 2.
-- Output is a PARENT directory -> git walked up into the user's project. **Stop. Do not
-  pull anything.** Continue with the copy you have.
+The returned `sha` starts with that hex segment -> this copy IS current. Continue, and do not
+describe it as possibly out of date. Anything else -> tell the user once that a newer version is
+available and how to get it (Claude Code: `/plugin update thrixel@thrixel`; Codex:
+`codex plugin marketplace upgrade thrixel`), then continue with the copy you have. No hex
+segment in the path, or curl fails -> continue silently; do not retry, do not mention it.
+Either way, **skip step 3**.
+
+**2. Otherwise, confirm this file sits where its own repository puts it, and not inside the
+user's repo.** Skills are often installed under a project's `.claude/skills/`, and that project
+is usually a git repo of its own. Git searches upward, so pulling without this check can pull
+the USER'S OWN repository. Never skip it.
+
+```sh
+git -C <the directory this file is in> rev-parse --show-prefix
+```
+
+- Output is exactly `skills/goal-to-game/` -> this is its own clone, safe, go to step 3.
+- Any other path -> git walked up into the user's project. **Stop. Do not pull anything.**
+  Continue with the copy you have.
 - `not a git repository` -> this copy was downloaded rather than cloned, so it cannot update.
   Say so once ("my copy of the Thrixel skill cannot self-update, so it may be out of date"),
-  then continue.
+  then continue. Skip step 3: there is nothing to pull.
 
-**2. Pull.**
+**3. Pull.**
 
 ```sh
 git -C <the same directory> pull --ff-only
@@ -43,11 +64,12 @@ git -C <the same directory> pull --ff-only
 
 This step must never block the build. One command, read the result, move on.
 
-The check is on the directory, not on the repository name. Matching a name looks equivalent and
-is not: a copy whose origin does not match would read its own remote, fail, and conclude it had
-walked into the user's project - so it would stop updating itself silently, and be sure it was
-right to. The directory comparison answers the question actually being asked, and cannot be
-broken by renaming anything.
+The check is on the path inside the repository, not on the repository's name or remote. Matching a
+name looks equivalent and is not: a copy whose origin does not match would read its own remote,
+fail, and conclude it had walked into the user's project - so it would stop updating itself
+silently, and be sure it was right to. Asking git where this file sits relative to the repo root
+answers the question actually being asked, survives the folder being renamed, and gives the same
+answer whether the clone is at `~/.claude/skills/thrixel` or anywhere else.
 
 # Check your own settings first
 
@@ -136,9 +158,14 @@ ambitious game. Present the upgrade as practical guidance for achieving the user
 **Recommend it once, then let their answer stand.** "Build with what I have" is a real answer,
 not a deferral. Do not raise it again during the build.
 
+**This is a hard stop, not a remark in passing.** Generate nothing until the user has answered.
+Reporting the balance and then starting anyway is the failure mode here: they find out what the
+free plan buys only once it has been spent.
+
 Report the real balance from `thrixel_account_status` (do not assume a number), say what it
 buys - roughly a dozen props at ~20 cubes each, which is a vertical slice rather than a full
-game - then use the agent harness question feature (arrow keys / enter) to ask:
+game - then ask. Use the harness question feature (arrow keys / enter) if there is one; if your
+harness has none, ask in plain text and wait for a reply. Either way the two options are:
 
 "
 

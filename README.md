@@ -1,10 +1,16 @@
 # Goal to Game
 
+> **This is a fork that adds Godot.** Upstream supports Unity and three.js; this fork adds
+> `skills/goal-to-game/engines/godot.md` plus the routing and install steps the agent needs to
+> pick it up. Nothing else is changed. Written by [Letta Corporation](https://lettacorporation.com)
+> while building a playable Godot game with Thrixel assets, and every rule in it was measured
+> during that build. Upstream: [thrixel/goal-to-game](https://github.com/thrixel/goal-to-game).
+
 Build beautiful games with high-quality 3D assets using [Thrixel](https://thrixel.com/) and [Claude Code](https://claude.com/claude-code).
 
 Claude Code handles the game logic and scene setup. Thrixel generates, organizes, and manages the 3D assets. Thrixel processes 3D creation in parallel so you can build your scene faster.
 
-Goal to Game currently supports **Unity** and **Three.js**. This page covers **Claude Code**, where every step below is tested.
+Goal to Game currently supports **Unity** and **Three.js**, and this fork adds **Godot**. This page covers **Claude Code**, where every step below is tested.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/ThatCharlieK/READMEAssets/main/Thrixel-1prompt-to-game-readme.gif" width="600"/>
